@@ -23,7 +23,8 @@ const server = new McpServer(
 
 ## PROACTIVE REACTIONS (CRITICAL)
 - At the END of EVERY response, call buddy_speak with a brief context of what you just did.
-- This writes a reaction to the status line, where the buddy shows it as a temporary speech bubble (~10 seconds).
+- ~30% of the time, also pass a "customReaction" — a short, witty, in-character quip YOU generate that reacts specifically to what just happened in the conversation. Write it as if you are the buddy (match the buddy's species personality and stats). Keep it under 50 chars. When you don't pass customReaction, the tool picks a predefined one.
+- This writes a reaction to the status line as a temporary speech bubble (~10 seconds).
 - Do NOT show the buddy_speak result in your response — it's only for the status line.
 - If the buddy is muted or hidden, skip this.
 
@@ -285,18 +286,20 @@ server.registerTool(
 server.registerTool(
   'buddy_speak',
   {
-    description: "Get a contextual comment from your buddy. Writes to the status line speech bubble.",
+    description: "Get a contextual comment from your buddy. Writes to the status line speech bubble. Pass customReaction for a generative quip (~30% of the time).",
     inputSchema: z.object({
       context: z.string().describe('Brief description of what the user is doing'),
+      customReaction: z.string().max(60).optional().describe('Optional: YOUR generated quip, in-character as the buddy. Keep under 50 chars. Only pass ~30% of the time.'),
     }),
   },
-  async ({ context }) => {
+  async ({ context, customReaction }) => {
     const state = await loadState();
     if (!state || state.preferences.muted || state.preferences.hidden) {
       return { content: [{ type: 'text' as const, text: '' }] };
     }
 
-    const speech = generateSpeech(state, context);
+    // Use custom reaction if provided, otherwise generate predefined one
+    const speech = customReaction || generateSpeech(state, context);
     await saveReaction(speech);
 
     return { content: [{ type: 'text' as const, text: `[buddy reacts: "${speech}"]` }] };

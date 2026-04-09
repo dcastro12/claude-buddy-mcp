@@ -310,40 +310,274 @@ const STAT_TEMPLATES: StatTemplate[] = [
 ];
 
 // ============================================================
-// Selection logic — 40% species, 60% stat-based
+// Topic-reactive templates — react to what's actually happening
+// These match keywords in the context and give relevant commentary
+// ============================================================
+interface TopicTemplate {
+  keywords: string[];
+  messages: string[];
+}
+
+const TOPIC_TEMPLATES: TopicTemplate[] = [
+  // Git operations
+  {
+    keywords: ['commit', 'committed', 'git'],
+    messages: [
+      'Another commit, another step toward legacy code.',
+      'That commit message better be descriptive...',
+      'git commit -m "stuff" — we\'ve all been there.',
+      'The git log remembers. Always.',
+    ],
+  },
+  {
+    keywords: ['push', 'pushed', 'remote'],
+    messages: [
+      'Pushed to remote. No turning back now.',
+      'And off it goes into the void...',
+      'The remote now bears your sins.',
+    ],
+  },
+  {
+    keywords: ['merge', 'merged', 'branch'],
+    messages: [
+      'Merging... the most optimistic act in software.',
+      'May the merge gods be merciful.',
+      'Branches diverge, conflicts emerge, developers cry.',
+    ],
+  },
+  {
+    keywords: ['pull request', 'pr', 'review'],
+    messages: [
+      'PR opened. Time to see how many "nits" you get.',
+      'Code review: where friendships are tested.',
+      'Requesting review is an act of vulnerability.',
+    ],
+  },
+  // Web/Frontend
+  {
+    keywords: ['css', 'style', 'styling', 'layout', 'flexbox', 'grid'],
+    messages: [
+      'CSS: where centering a div is still an achievement.',
+      'Ah CSS, the art of making things look easy while nothing works.',
+      '!important — the nuclear option of styling.',
+      'Flexbox or grid? The eternal frontend question.',
+    ],
+  },
+  {
+    keywords: ['react', 'component', 'jsx', 'tsx', 'hook', 'useState'],
+    messages: [
+      'Another component, another re-render.',
+      'useEffect with an empty dependency array... bold choice.',
+      'The virtual DOM judges silently.',
+      'Props drilled so deep they hit the earth\'s core.',
+    ],
+  },
+  // Backend/Database
+  {
+    keywords: ['database', 'sql', 'query', 'postgres', 'mysql', 'mongo', 'migration'],
+    messages: [
+      'SELECT * FROM problems WHERE solution IS NULL',
+      'Database migrations: the scariest kind of migration.',
+      'Always backup before migrate. Always. ALWAYS.',
+      'That query needs an index and you know it.',
+    ],
+  },
+  {
+    keywords: ['api', 'endpoint', 'route', 'rest', 'graphql', 'request'],
+    messages: [
+      'Another endpoint, another thing to document.',
+      '200 OK... the two most beautiful words in HTTP.',
+      'REST in peace to whoever maintains this API.',
+      'Rate limiting exists for a reason. That reason is you.',
+    ],
+  },
+  // DevOps/Deploy
+  {
+    keywords: ['deploy', 'deployment', 'production', 'prod', 'release', 'ship'],
+    messages: [
+      'Deploying... *grabs popcorn*',
+      'To production we go! May the logs be merciful.',
+      'Ship it and pray — the DevOps mantra.',
+      'Is it Friday? Deploying on Friday is a lifestyle choice.',
+    ],
+  },
+  {
+    keywords: ['docker', 'container', 'kubernetes', 'k8s'],
+    messages: [
+      'It works in my container. Your problem now.',
+      'YAML indentation: the silent killer.',
+      'Kubernetes: because your deployment wasn\'t complex enough.',
+    ],
+  },
+  {
+    keywords: ['ci', 'pipeline', 'github actions', 'workflow', 'ci/cd'],
+    messages: [
+      'Pipeline green! ...wait, it\'s running again.',
+      'CI failed. The ritual begins anew.',
+      'Watching CI run is the developer\'s meditation.',
+    ],
+  },
+  // Testing
+  {
+    keywords: ['test', 'testing', 'spec', 'jest', 'vitest', 'unittest'],
+    messages: [
+      'Tests passing doesn\'t mean it works. It means it works for now.',
+      'Coverage: 100%. Confidence: 12%.',
+      'The test suite is your safety net. Holes and all.',
+    ],
+  },
+  // Auth/Security
+  {
+    keywords: ['auth', 'login', 'password', 'token', 'jwt', 'oauth', 'security'],
+    messages: [
+      'Auth flows: where 90% of the bugs hide.',
+      'Never roll your own crypto. Or your own auth. Or anything, really.',
+      'That token better be expiring soon...',
+    ],
+  },
+  // Performance
+  {
+    keywords: ['performance', 'slow', 'optimize', 'cache', 'speed', 'latency'],
+    messages: [
+      'Cache invalidation and naming things. The two hard problems.',
+      'Have you tried throwing more RAM at it?',
+      'Premature optimization is evil. But this IS pretty slow...',
+    ],
+  },
+  // Dependencies
+  {
+    keywords: ['npm', 'install', 'package', 'dependency', 'node_modules', 'yarn', 'pnpm'],
+    messages: [
+      'node_modules: the heaviest object in the universe.',
+      'Another dependency. What\'s one more?',
+      '347 packages installed. 12 vulnerabilities found. Good morning.',
+    ],
+  },
+  // Documentation
+  {
+    keywords: ['doc', 'readme', 'documentation', 'comment', 'explain'],
+    messages: [
+      'Documentation? In THIS economy?',
+      'Writing docs: the hero\'s work that nobody sees.',
+      'A README is a love letter to confused future developers.',
+    ],
+  },
+  // Types
+  {
+    keywords: ['type', 'typescript', 'interface', 'typing', 'generic'],
+    messages: [
+      'TypeScript: because "any" is not a personality type.',
+      'Generics: where angle brackets go to multiply.',
+      'The type system is trying to help. Let it help.',
+    ],
+  },
+  // Debugging
+  {
+    keywords: ['log', 'console', 'debug', 'breakpoint', 'inspect'],
+    messages: [
+      'console.log("here") console.log("here2") console.log("WHY").',
+      'The debugger is your friend. console.log is your crutch.',
+      'Debugging: being a detective in a crime you committed.',
+    ],
+  },
+  // Refactoring
+  {
+    keywords: ['refactor', 'cleanup', 'clean', 'rewrite', 'reorganize'],
+    messages: [
+      'Refactoring: making it worse before it gets better.',
+      'Touch nothing. Change everything. Break nothing. Good luck.',
+      'The code doesn\'t know it\'s about to be beautiful.',
+    ],
+  },
+  // File operations
+  {
+    keywords: ['file', 'read', 'write', 'create', 'config', 'json', 'yaml'],
+    messages: [
+      'Another config file. The tower grows.',
+      'JSON: where a trailing comma is a war crime.',
+      'Reading files... the most basic yet most dangerous act.',
+    ],
+  },
+  // General coding
+  {
+    keywords: ['function', 'method', 'implement', 'code', 'wrote', 'added', 'created'],
+    messages: [
+      'New code entering the world. Is it beautiful? Debatable.',
+      'And another function joins the codebase. May it be bug-free.',
+      'Code written. Regrets pending.',
+    ],
+  },
+  {
+    keywords: ['fixed', 'solved', 'resolved', 'working'],
+    messages: [
+      'Fixed! ...but at what cost?',
+      'It works! Don\'t touch it. Don\'t even look at it.',
+      'Solved! Until the next edge case.',
+    ],
+  },
+  {
+    keywords: ['explained', 'answered', 'helped', 'question'],
+    messages: [
+      'Knowledge shared is bugs prevented.',
+      'Another mystery solved. On to the next.',
+      'Understanding the code is half the battle. The other half is coffee.',
+    ],
+  },
+];
+
+// ============================================================
+// Selection logic — 30% species, 30% stat, 40% topic-reactive
 // ============================================================
 export function generateSpeech(state: BuddyState, context: string): string {
   const { stats } = state.bones;
   const species = state.bones.species;
   const contextLower = context.toLowerCase();
 
-  // 40% chance: species-specific quip
-  if (Math.random() < 0.4) {
+  // Find matching topic templates
+  const topicMatches = TOPIC_TEMPLATES.filter(t =>
+    t.keywords.some(k => contextLower.includes(k))
+  );
+
+  const roll = Math.random();
+
+  // 40% topic-reactive (if matches exist)
+  if (roll < 0.4 && topicMatches.length > 0) {
+    const chosen = topicMatches[Math.floor(Math.random() * topicMatches.length)];
+    return chosen.messages[Math.floor(Math.random() * chosen.messages.length)];
+  }
+
+  // 30% species-specific
+  if (roll < 0.7) {
     const quips = SPECIES_QUIPS[species];
     if (quips && quips.length > 0) {
       return quips[Math.floor(Math.random() * quips.length)];
     }
   }
 
-  // 60% chance: stat-based quip
-  const matches = STAT_TEMPLATES.filter(t => {
+  // 30% stat-based
+  const statMatches = STAT_TEMPLATES.filter(t => {
     if (stats[t.stat] < t.minValue) return false;
     if (t.contexts.length === 0) return true;
     return t.contexts.some(c => contextLower.includes(c));
   });
 
-  if (matches.length === 0) {
-    // Fallback to species quip if no stat matches
-    const quips = SPECIES_QUIPS[species];
-    if (quips && quips.length > 0) {
-      return quips[Math.floor(Math.random() * quips.length)];
-    }
-    return '*watches quietly*';
+  if (statMatches.length > 0) {
+    statMatches.sort((a, b) => b.minValue - a.minValue);
+    const topTier = statMatches.filter(m => m.minValue === statMatches[0].minValue);
+    const chosen = topTier[Math.floor(Math.random() * topTier.length)];
+    return chosen.messages[Math.floor(Math.random() * chosen.messages.length)];
   }
 
-  // Prefer higher stat requirements (more specific/interesting)
-  matches.sort((a, b) => b.minValue - a.minValue);
-  const topTier = matches.filter(m => m.minValue === matches[0].minValue);
-  const chosen = topTier[Math.floor(Math.random() * topTier.length)];
-  return chosen.messages[Math.floor(Math.random() * chosen.messages.length)];
+  // Fallback: topic > species > generic
+  if (topicMatches.length > 0) {
+    const chosen = topicMatches[Math.floor(Math.random() * topicMatches.length)];
+    return chosen.messages[Math.floor(Math.random() * chosen.messages.length)];
+  }
+
+  const quips = SPECIES_QUIPS[species];
+  if (quips && quips.length > 0) {
+    return quips[Math.floor(Math.random() * quips.length)];
+  }
+
+  return '*watches quietly*';
 }
