@@ -83,8 +83,19 @@ settings.statusLine = {
   refreshInterval: 1
 };
 
+// Set Stop hook (fallback if Claude forgets to call buddy_speak)
+if (!settings.hooks) settings.hooks = {};
+settings.hooks.Stop = [{
+  hooks: [{
+    type: 'command',
+    command: 'node ' + buddyDir + '/buddy-react.cjs',
+    timeout: 5,
+    async: true
+  }]
+}];
+
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-console.log('  ✓ settings.json updated (permissions, statusLine)');
+console.log('  ✓ settings.json updated (permissions, statusLine, hooks)');
 "
 
 # ── 5. Install CLAUDE.md ─────────────────────────────────────

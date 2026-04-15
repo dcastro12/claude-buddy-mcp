@@ -175,7 +175,7 @@ try {
       if (fs.existsSync(REACTION_FILE)) {
         const r = JSON.parse(fs.readFileSync(REACTION_FILE, 'utf8'));
         const age = (Date.now() - r.timestamp) / 1000;
-        if (age < 10 && r.reaction) reaction = r.reaction;
+        if (age < 15 && r.reaction) reaction = r.reaction;
       }
     } catch (e) {}
   }

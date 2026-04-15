@@ -22,7 +22,7 @@ try {
     try {
       const existing = JSON.parse(fs.readFileSync(REACTION_FILE, 'utf8'));
       const age = (Date.now() - existing.timestamp) / 1000;
-      if (age < 5) process.exit(0); // buddy_speak was called, don't overwrite
+      if (age < 20) process.exit(0); // buddy_speak was called recently, don't overwrite
     } catch (e) {}
   }
 
