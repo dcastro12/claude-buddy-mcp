@@ -83,19 +83,8 @@ settings.statusLine = {
   refreshInterval: 1
 };
 
-// Set Stop hook
-if (!settings.hooks) settings.hooks = {};
-settings.hooks.Stop = [{
-  hooks: [{
-    type: 'command',
-    command: 'node ' + buddyDir + '/buddy-react.cjs',
-    timeout: 5,
-    async: true
-  }]
-}];
-
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-console.log('  ✓ settings.json updated (permissions, statusLine, hooks)');
+console.log('  ✓ settings.json updated (permissions, statusLine)');
 "
 
 # ── 5. Install CLAUDE.md ─────────────────────────────────────
