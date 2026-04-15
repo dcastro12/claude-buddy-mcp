@@ -143,17 +143,17 @@ try {
     ],
   };
 
-  // Body animation: cycle through 3 frames every 9 seconds (3s per frame)
-  const bodyFrame = Math.floor(Date.now() / 3000) % 3;
+  // Body animation: cycle through 3 frames every 6 seconds (2s per frame)
+  const bodyFrame = Math.floor(Date.now() / 2000) % 3;
   const specFrames = sprites[species];
   const frameData = specFrames ? specFrames[bodyFrame] || specFrames[0] : ['  ???  ', '  (. .)', '  ( _ )', "  `---´"];
 
   // Eye replacement
   let spriteLines = frameData.map(l => l.replace(/E/g, eye));
 
-  // Blink animation: 5s open, 1.5s closed, 1.5s open = 8s cycle
+  // Blink animation: 3.5s open, 1.5s closed, 3s open = 8s cycle
   const blinkCycle = Date.now() % 8000;
-  const isBlinking = blinkCycle >= 5000 && blinkCycle < 6500;
+  const isBlinking = blinkCycle >= 3500 && blinkCycle < 5000;
   if (isBlinking) {
     const eyeRegex = new RegExp(eye.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
     spriteLines = spriteLines.map(l => l.replace(eyeRegex, '-'));
