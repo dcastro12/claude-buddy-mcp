@@ -43,6 +43,7 @@ The user wants to interact with their virtual pet buddy. Parse the subcommand fr
 - "mute" → call buddy_mute tool
 - "unmute" → call buddy_unmute tool
 - "off" → call buddy_off tool
+- "restart" or "refresh" or "reset" → call buddy_restart tool (unstick the buddy)
 
 If the tool response contains needs_soul=true, follow the soul generation flow:
 1. Read the SOUL GENERATION PROMPT

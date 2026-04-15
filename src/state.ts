@@ -78,6 +78,10 @@ export async function loadReaction(): Promise<BuddyReaction | null> {
   }
 }
 
+export async function clearReaction(): Promise<void> {
+  try { await fs.unlink(REACTION_FILE); } catch {}
+}
+
 export function createInitialState(userId: string, bones: BuddyBones): BuddyState {
   const now = new Date().toISOString();
   return {

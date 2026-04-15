@@ -6,7 +6,7 @@ import { z } from 'zod';
 import os from 'node:os';
 
 import { generateBones } from './hash.js';
-import { loadState, saveState, createInitialState, saveReaction } from './state.js';
+import { loadState, saveState, createInitialState, saveReaction, clearReaction } from './state.js';
 import { renderBuddy, renderWithSpeech, renderPetAnimation, renderHatchAnimation } from './ascii/renderer.js';
 import { renderStatCard } from './card.js';
 import { generateSpeech } from './speech.js';
@@ -37,6 +37,7 @@ const server = new McpServer(
 - /buddy off → buddy_off
 - /buddy customize [params] → buddy_customize
 - /buddy hunt [criteria] → buddy_hunt
+- /buddy restart → buddy_restart (unstick buddy / refresh after opening new windows)
 
 ## FIRST-TIME HATCHING / SPECIES CHANGE
 When any tool returns needs_soul=true:
@@ -459,6 +460,40 @@ server.registerTool(
     output += `Use /buddy customize to pick your species!`;
 
     return { content: [{ type: 'text' as const, text: output }] };
+  }
+);
+
+// ============================================================
+// Tool: buddy_restart
+// ============================================================
+server.registerTool(
+  'buddy_restart',
+  {
+    description: 'Restart/unstick the buddy. Clears any stale reactions and validates state. Use when buddy seems stuck or disappears after opening new windows.',
+    inputSchema: z.object({}),
+  },
+  async () => {
+    // Clear any stale reaction
+    await clearReaction();
+
+    // Load state to validate it
+    const state = await loadState();
+    if (!state) {
+      return errorResult('No buddy found. Use /buddy to hatch one first.');
+    }
+
+    // Touch the state file to refresh lastSeen timestamp
+    await saveState(state);
+
+    const name = state.soul?.name ?? state.bones.species;
+    const species = state.bones.species;
+
+    return {
+      content: [{
+        type: 'text' as const,
+        text: `🔄 ${name} the ${species} has been refreshed!\n\n• Cleared stale speech bubble\n• Validated state file\n• Ready to go!\n\nThe status line should refresh within 1 second.`,
+      }],
+    };
   }
 );
 
