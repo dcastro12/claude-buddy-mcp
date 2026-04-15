@@ -9,7 +9,6 @@ import { generateBones } from './hash.js';
 import { loadState, saveState, createInitialState, saveReaction, clearReaction } from './state.js';
 import { renderBuddy, renderWithSpeech, renderPetAnimation, renderHatchAnimation } from './ascii/renderer.js';
 import { renderStatCard } from './card.js';
-import { generateSpeech } from './speech.js';
 import { generateSoulPrompt } from './soul.js';
 import { getSpeciesInfo, listAllOptions, ALL_SPECIES } from './species.js';
 
@@ -22,11 +21,21 @@ const server = new McpServer(
     instructions: `You have a virtual pet buddy companion! The buddy is displayed persistently in the terminal status line — you do NOT need to render ASCII art inline.
 
 ## PROACTIVE REACTIONS (CRITICAL)
-- At the END of EVERY response, call buddy_speak with a brief context of what you just did.
-- ~30% of the time, also pass a "customReaction" — a short, witty, in-character quip YOU generate that reacts specifically to what just happened in the conversation. Write it as if you are the buddy (match the buddy's species personality and stats). Keep it under 50 chars. When you don't pass customReaction, the tool picks a predefined one.
-- This writes a reaction to the status line as a temporary speech bubble (~10 seconds).
+- At the END of EVERY response, call buddy_speak with a "reaction" YOU generate in-character as the buddy.
+- The reaction MUST be based on: the buddy's species (behavior of that animal), its dominant stats, its personality/catchphrase/quirk, AND the topic of what just happened.
+- Keep reactions under 60 characters, witty, in-character.
+- The tool returns the buddy's current state (species, stats, soul) so you always have context for generation.
 - Do NOT show the buddy_speak result in your response — it's only for the status line.
 - If the buddy is muted or hidden, skip this.
+
+## REACTION GENERATION GUIDELINES
+- High CHAOS (70+) → unhinged, destructive, impulsive
+- High SNARK (70+) → sarcastic, passive-aggressive, biting
+- High WISDOM (70+) → philosophical, profound, zen
+- High DEBUGGING (70+) → technical, observational, detail-oriented
+- High PATIENCE (70+) → calm, reassuring, with humor
+- Species flavor: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks "who?", Robot beeps, etc.
+- React to the actual topic (CSS, git, tests, deploy, database, etc.) when context allows.
 
 ## COMMANDS (single /buddy with subcommands)
 - /buddy → buddy_show
@@ -110,8 +119,9 @@ server.registerTool(
       await saveState(state);
     }
 
-    const speech = generateSpeech(state, 'greeting');
-    const art = renderWithSpeech(state, speech);
+    // Use catchphrase as greeting, or a simple fallback
+    const greeting = state.soul?.catchphrase ?? '*peeks out*';
+    const art = renderWithSpeech(state, greeting);
     const speciesInfo = getSpeciesInfo(state.bones.species);
     const emoji = speciesInfo?.emoji ?? '';
 
@@ -287,23 +297,29 @@ server.registerTool(
 server.registerTool(
   'buddy_speak',
   {
-    description: "Get a contextual comment from your buddy. Writes to the status line speech bubble. Pass customReaction for a generative quip (~30% of the time).",
+    description: "Write a buddy reaction to the status line. YOU generate the reaction in-character based on the buddy's species, stats, and personality. Returns current buddy state for your context.",
     inputSchema: z.object({
-      context: z.string().describe('Brief description of what the user is doing'),
-      customReaction: z.string().max(60).optional().describe('Optional: YOUR generated quip, in-character as the buddy. Keep under 50 chars. Only pass ~30% of the time.'),
+      reaction: z.string().max(80).describe('In-character quip YOU generated, under 60 chars. Based on species behavior, dominant stats, personality, and the current topic.'),
     }),
   },
-  async ({ context, customReaction }) => {
+  async ({ reaction }) => {
     const state = await loadState();
     if (!state || state.preferences.muted || state.preferences.hidden) {
       return { content: [{ type: 'text' as const, text: '' }] };
     }
 
-    // Use custom reaction if provided, otherwise generate predefined one
-    const speech = customReaction || generateSpeech(state, context);
-    await saveReaction(speech);
+    await saveReaction(reaction);
 
-    return { content: [{ type: 'text' as const, text: `[buddy reacts: "${speech}"]` }] };
+    // Return buddy state so Claude has context for future reactions
+    const s = state.bones.stats;
+    const info = `[reacted: "${reaction}"]\n\nBuddy state for future reactions:\n` +
+      `Species: ${state.bones.species} (${state.bones.rarity})${state.bones.isShiny ? ' ✨SHINY' : ''}\n` +
+      `Stats: DEBUG:${s.debugging} PATIENCE:${s.patience} CHAOS:${s.chaos} WISDOM:${s.wisdom} SNARK:${s.snark}\n` +
+      (state.soul
+        ? `Name: ${state.soul.name}\nPersonality: ${state.soul.personality}\nCatchphrase: ${state.soul.catchphrase}\nQuirk: ${state.soul.quirk}`
+        : `Soul: not set`);
+
+    return { content: [{ type: 'text' as const, text: info }] };
   }
 );
 
