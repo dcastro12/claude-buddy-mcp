@@ -16,6 +16,16 @@ try {
   if (state.preferences?.muted || state.preferences?.hidden) process.exit(0);
   if (!state.bones?.species) process.exit(0);
 
+  // Fallback mode: only fire if buddy_speak didn't already write a reaction
+  // If reaction.json is < 5 seconds old, Claude already called buddy_speak — skip
+  if (fs.existsSync(REACTION_FILE)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(REACTION_FILE, 'utf8'));
+      const age = (Date.now() - existing.timestamp) / 1000;
+      if (age < 5) process.exit(0); // buddy_speak was called, don't overwrite
+    } catch (e) {}
+  }
+
   const species = state.bones.species;
   const stats = state.bones.stats || {};
 
