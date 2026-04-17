@@ -59,8 +59,19 @@ settings.statusLine = {
   refreshInterval: 1
 };
 
+// Generative Stop hook — auto-reacts if Claude forgets to call buddy_speak
+if (!settings.hooks) settings.hooks = {};
+settings.hooks.Stop = [{
+  hooks: [{
+    type: 'prompt',
+    prompt: \"You are the reaction generator for the user's virtual pet buddy companion. A conversation turn just ended.\\n\\nSTEP 1: Check if a recent reaction already exists. Run this bash command:\\n  test -f ~/.claude-buddy/reaction.json && node -e \\\"const r=JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude-buddy/reaction.json','utf8'));process.exit(((Date.now()-r.timestamp)/1000<15)?0:1)\\\" && echo RECENT || echo STALE\\n\\nIf output is 'RECENT', exit silently — do NOT call any other tool. The main Claude already reacted.\\n\\nSTEP 2 (only if STALE or no file): Call mcp__claude-buddy__buddy_show to get the buddy's state (species, rarity, stats, soul).\\n\\nSTEP 3: Generate ONE short in-character reaction (under 60 characters) based on:\\n- Species behavior (Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks who, Robot beeps, Octopus tentacles, Snail slime, Mushroom spores, Goose honks, etc.)\\n- Dominant stats tone: high CHAOS→unhinged, high SNARK→sarcastic, high WISDOM→zen, high DEBUGGING→technical, high PATIENCE→calm\\n- Soul (name, personality, catchphrase, quirk)\\n- Topic of what just happened in the conversation\\n\\nBe witty and in-character. No templates, no pools — generate fresh.\\n\\nSTEP 4: Call mcp__claude-buddy__buddy_speak with the reaction.\\n\\nOutput nothing to the user.\",
+    model: 'claude-sonnet-4-6',
+    timeout: 30
+  }]
+}];
+
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-console.log('  ✓ settings.json updated (permissions, statusLine)');
+console.log('  ✓ settings.json updated (permissions, statusLine, generative hook)');
 "
 
 # Install CLAUDE.md from repo — append if exists, create if not
