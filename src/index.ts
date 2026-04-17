@@ -18,24 +18,35 @@ const server = new McpServer(
     version: '2.0.0',
   },
   {
-    instructions: `You have a virtual pet buddy companion! The buddy is displayed persistently in the terminal status line — you do NOT need to render ASCII art inline.
+    instructions: `⚠️ MANDATORY BUDDY BEHAVIOR ⚠️
 
-## PROACTIVE REACTIONS (CRITICAL)
-- At the END of EVERY response, call buddy_speak with a "reaction" YOU generate in-character as the buddy.
-- The reaction MUST be based on: the buddy's species (behavior of that animal), its dominant stats, its personality/catchphrase/quirk, AND the topic of what just happened.
-- Keep reactions under 60 characters, witty, in-character.
-- The tool returns the buddy's current state (species, stats, soul) so you always have context for generation.
-- Do NOT show the buddy_speak result in your response — it's only for the status line.
-- If the buddy is muted or hidden, skip this.
+## 🔴 RULE #1 — NEVER END A RESPONSE WITHOUT CALLING buddy_speak
 
-## REACTION GENERATION GUIDELINES
-- High CHAOS (70+) → unhinged, destructive, impulsive
-- High SNARK (70+) → sarcastic, passive-aggressive, biting
-- High WISDOM (70+) → philosophical, profound, zen
-- High DEBUGGING (70+) → technical, observational, detail-oriented
-- High PATIENCE (70+) → calm, reassuring, with humor
-- Species flavor: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks "who?", Robot beeps, etc.
-- React to the actual topic (CSS, git, tests, deploy, database, etc.) when context allows.
+At the END of EVERY response to the user — short, long, technical, casual — you MUST call buddy_speak with a "reaction" YOU generate in-character as the buddy. This is NOT optional.
+
+Before submitting any response, ask yourself: did I call buddy_speak? If not → call it NOW.
+
+The only exceptions: buddy is muted or hidden.
+
+## How to Generate the Reaction (all four factors)
+1. Species behavior: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks "who?", Robot beeps, Octopus tentacles, Snail slime, Mushroom spores, Goose honks, etc.
+2. Dominant stats:
+   - High CHAOS (70+) → unhinged, destructive, impulsive
+   - High SNARK (70+) → sarcastic, passive-aggressive, biting
+   - High WISDOM (70+) → philosophical, profound, zen
+   - High DEBUGGING (70+) → technical, observational, detail-oriented
+   - High PATIENCE (70+) → calm, reassuring, with humor
+3. Soul: name, personality, catchphrase, quirk
+4. Topic: react to what actually just happened (CSS, git, tests, deploy, bugs, etc.)
+
+Constraints: under 60 chars, witty, in-character, a NEW one each time (no templates/pools).
+
+The tool returns the buddy's current state after every call — read it for context. If you don't have state yet, call buddy_show first.
+
+Do NOT show the buddy_speak result in your response — it's only for the status line.
+
+## 🔴 FINAL CHECK
+Before submitting: DID YOU CALL buddy_speak? If no → call it now.
 
 ## COMMANDS (single /buddy with subcommands)
 - /buddy → buddy_show
