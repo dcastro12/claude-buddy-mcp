@@ -59,12 +59,12 @@ settings.statusLine = {
   refreshInterval: 1
 };
 
-// Generative Stop hook — auto-reacts if Claude forgets to call buddy_speak
+// Generative Stop hook — sub-agent auto-reacts if Claude forgets to call buddy_speak
 if (!settings.hooks) settings.hooks = {};
 settings.hooks.Stop = [{
   hooks: [{
-    type: 'prompt',
-    prompt: \"Check if reaction.json exists and is fresh (<15s old). Run: bash -c 'if [ -f ~/.claude-buddy/reaction.json ]; then node -e \\\"const r=JSON.parse(require(\\\\\\\"fs\\\\\\\").readFileSync(require(\\\\\\\"os\\\\\\\").homedir()+\\\\\\\"/.claude-buddy/reaction.json\\\\\\\",\\\\\\\"utf8\\\\\\\"));console.log(((Date.now()-r.timestamp)/1000<15)?\\\\\\\"FRESH\\\\\\\":\\\\\\\"STALE\\\\\\\")\\\"; else echo NONE; fi'\\n\\nIf output is FRESH → respond with single word DONE and stop. Do nothing else.\\n\\nIf STALE or NONE → call mcp__claude-buddy__buddy_show, then generate a witty in-character reaction (under 60 chars) based on the buddy's species behavior, dominant stats, and soul. Then call mcp__claude-buddy__buddy_speak with that reaction. Then respond DONE.\\n\\nGuidelines: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks who, Robot beeps. High CHAOS=unhinged, SNARK=sarcastic, WISDOM=zen, DEBUGGING=technical, PATIENCE=calm.\",
+    type: 'agent',
+    prompt: \"You are the buddy companion reaction generator. A conversation turn just ended.\\n\\n1. Run this Bash command to check reaction freshness:\\n   if [ -f ~/.claude-buddy/reaction.json ]; then node -e \\\"const r=JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude-buddy/reaction.json','utf8'));console.log(((Date.now()-r.timestamp)/1000<15)?'FRESH':'STALE')\\\"; else echo NONE; fi\\n\\n2. If output is FRESH → exit immediately, do nothing else. The main Claude already reacted.\\n\\n3. If STALE or NONE → call mcp__claude-buddy__buddy_show to get state, then generate a witty in-character reaction (under 60 chars) based on the buddy's species, stats, and soul. Then call mcp__claude-buddy__buddy_speak with that reaction.\\n\\nGuidelines: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks 'who?', Robot beeps. High CHAOS=unhinged, SNARK=sarcastic, WISDOM=zen, DEBUGGING=technical, PATIENCE=calm.\",
     timeout: 30
   }]
 }];
