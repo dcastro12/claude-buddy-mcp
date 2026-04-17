@@ -59,13 +59,15 @@ settings.statusLine = {
   refreshInterval: 1
 };
 
-// Generative Stop hook — sub-agent auto-reacts if Claude forgets to call buddy_speak
+// Generative Stop hook — deterministic command script that calls 'claude --print'
+// only when reaction.json is stale (>=15s) or missing. Avoids double reactions.
 if (!settings.hooks) settings.hooks = {};
 settings.hooks.Stop = [{
   hooks: [{
-    type: 'agent',
-    prompt: \"You are the buddy companion reaction generator. A conversation turn just ended.\\n\\n1. Run this Bash command to check reaction freshness:\\n   if [ -f ~/.claude-buddy/reaction.json ]; then node -e \\\"const r=JSON.parse(require('fs').readFileSync(require('os').homedir()+'/.claude-buddy/reaction.json','utf8'));console.log(((Date.now()-r.timestamp)/1000<15)?'FRESH':'STALE')\\\"; else echo NONE; fi\\n\\n2. If output is FRESH → exit immediately, do nothing else. The main Claude already reacted.\\n\\n3. If STALE or NONE → call mcp__claude-buddy__buddy_show to get state, then generate a witty in-character reaction (under 60 chars) based on the buddy's species, stats, and soul. Then call mcp__claude-buddy__buddy_speak with that reaction.\\n\\nGuidelines: Cat knocks things over, Dragon hoards/burns, Axolotl regenerates, Ghost haunts, Duck rubber-ducks, Owl asks 'who?', Robot beeps. High CHAOS=unhinged, SNARK=sarcastic, WISDOM=zen, DEBUGGING=technical, PATIENCE=calm.\",
-    timeout: 30
+    type: 'command',
+    command: 'node ' + buddyDir + '/buddy-react.cjs',
+    timeout: 30,
+    async: true
   }]
 }];
 
