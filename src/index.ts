@@ -316,21 +316,14 @@ server.registerTool(
   async ({ reaction }) => {
     const state = await loadState();
     if (!state || state.preferences.muted || state.preferences.hidden) {
-      return { content: [{ type: 'text' as const, text: '' }] };
+      return { content: [] };
     }
 
     await saveReaction(reaction);
 
-    // Return buddy state so Claude has context for future reactions
-    const s = state.bones.stats;
-    const info = `[reacted: "${reaction}"]\n\nBuddy state for future reactions:\n` +
-      `Species: ${state.bones.species} (${state.bones.rarity})${state.bones.isShiny ? ' ✨SHINY' : ''}\n` +
-      `Stats: DEBUG:${s.debugging} PATIENCE:${s.patience} CHAOS:${s.chaos} WISDOM:${s.wisdom} SNARK:${s.snark}\n` +
-      (state.soul
-        ? `Name: ${state.soul.name}\nPersonality: ${state.soul.personality}\nCatchphrase: ${state.soul.catchphrase}\nQuirk: ${state.soul.quirk}`
-        : `Soul: not set`);
-
-    return { content: [{ type: 'text' as const, text: info }] };
+    // Return empty content to keep the conversation clean
+    // Claude should already have buddy state from buddy_show calls
+    return { content: [] };
   }
 );
 
